@@ -1,9 +1,9 @@
 # EpochNutrition 营养系统
 
-四项独立营养值玩法插件（碳水 / 维生素 / 蛋白质 / 脂肪），按《营养.txt》规格实现。
+四项独立营养值玩法插件（碳水 / 维生素 / 蛋白质 / 脂肪），按瓜始皇规格实现。
 
 - **版本**：26.1.3
-- **适配**：Paper 1.21.x（api-version 1.21，JDK 21）+ CraftEngine **26.1.3**（软依赖，无硬 API 依赖）
+- **适配**：Paper 1.21.x以上 + CraftEngine **26.1.3**（软依赖，无硬 API 依赖）
 - **指令**：`/enu`
 - **CE 物品对接**：customcrops 包（玉米/番茄/卷心菜/白菜/扁豆/茄子/菠萝/葡萄/火龙果/蓝莓）
 
@@ -36,7 +36,7 @@ mvn package        # 需要 JDK 21 + Maven，产物 target/EpochNutrition-26.1.3
 
 ## CraftEngine 26.1.3 兼容设计
 
-无编译期 CE 依赖，全部走 Paper 1.21 数据组件：
+无编译期 CE 依赖，全部走 Paper 26.X 数据组件：
 
 1. **CE 物品识别**（`ce.detection: auto`）：
    - `item_model`：非 minecraft 命名空间的模型键 → `customcrops:item/customcrops/crop/corn/corn`
@@ -56,7 +56,7 @@ manual-recipes:
 
 森罗厨房后续也可直接调 `EpochNutrition.get().addNutrition(...)` 等 API，或在 CE 料理完成时调用 PDC 写入。
 
-## 数值示例（TXT 校验）
+## 数值示例
 
 面包（饱食度 5，精制主食 碳水1.5/蛋白质0.1/维生素0.15/脂肪0.10）：
 碳水 7.5；蛋白质 0.5；维生素 0.75；脂肪 0.5 ✓
