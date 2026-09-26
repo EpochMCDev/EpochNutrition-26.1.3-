@@ -1,0 +1,27 @@
+name: EpochNutrition
+version: 26.1.3
+main: net.miolc.epochnutrition.EpochNutritionPlugin
+api-version: '1.21'
+authors: [澪冷]
+description: "四项营养值系统（碳水/维生素/蛋白质/脂肪），适配 CraftEngine 26.1.3"
+softdepend: [CraftEngine]
+
+commands:
+  enu:
+    description: 营养系统指令
+    usage: |
+      /enu set <玩家> <grain|vitamin|protein|fat|all> <数值>
+      /enu add <玩家> <grain|vitamin|protein|fat|all> <数值>
+      /enu remove <玩家> <grain|vitamin|protein|fat|all> <数值>
+      /enu getguide <玩家> <分类|all>
+      /enu query [玩家]
+      /enu guide
+      /enu reload
+
+permissions:
+  enu.admin:
+    description: 管理营养值与图鉴解锁
+    default: op
+  enu.guide:
+    description: 打开自己的营养图鉴
+    default: true

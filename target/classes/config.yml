@@ -1,0 +1,171 @@
+# ============================================================
+#  EpochNutrition 营养系统  |  适配 CraftEngine 26.1.3 / Paper 1.21.x
+#  四项独立营养值：grain碳水 / vitamin维生素 / protein蛋白质 / fat脂肪
+#  数值范围 0~120：0~30营养不良 30~60营养缺乏 60~100营养健全 100~120营养盈余
+# ============================================================
+
+# 数值范围
+range:
+  min: 0
+  max: 120
+
+# 新玩家初始营养值
+start:
+  grain: 75
+  vitamin: 75
+  protein: 75
+  fat: 75
+
+# 营养消耗：数值按"每游戏日"配置，游戏内一天 = 20 现实分钟
+decay:
+  game-day-minutes: 20       # 一个游戏日换算的现实分钟数
+  interval-minutes: 1.0      # 每次扣取的间隔（分钟，可小数，如 0.5 = 每30秒）
+  per-day:                   # 每游戏日消耗
+    grain: 34
+    protein: 22
+    vitamin: 18
+    fat: 16
+  offline: true              # 离线也按时间衰减（上线时一次性结算）
+  offline-max-days: 3        # 离线衰减最多结算天数（防久离线玩家上线即死）
+
+# 档位药水效果（格式 "效果名:等级"，等级即药水等级，1=I、2=II…）
+# 效果名使用原版英文 id：slowness/haste/mining_fatigue/nausea/poison/wither/
+#                      weakness/hunger/darkness/resistance/strength 等
+effects:
+  grain:
+    malnourished: ["SLOWNESS:5", "DARKNESS:1", "HUNGER:2"]
+    deficient: ["SLOWNESS:2", "HUNGER:1"]
+    sound: []
+    surplus: ["HASTE:1", "RESISTANCE:1"]
+  protein:
+    malnourished: ["WEAKNESS:5", "DARKNESS:1"]
+    deficient: ["WEAKNESS:2"]
+    sound: []
+    surplus: ["STRENGTH:1"]
+  vitamin:
+    malnourished: ["MINING_FATIGUE:3", "NAUSEA:2", "POISON:2"]
+    deficient: ["MINING_FATIGUE:2", "NAUSEA:2"]
+    sound: []
+    surplus: []
+  fat:
+    malnourished: ["MINING_FATIGUE:3", "WITHER:2"]
+    deficient: []
+    sound: []
+    surplus: ["WEAKNESS:2", "MINING_FATIGUE:2"]
+effect-refresh-seconds: 3     # 效果刷新间隔
+effect-duration-seconds: 6    # 每轮施加的时长（略长于刷新间隔即可）
+
+# 清零死亡
+death:
+  lethal: [grain, protein]    # 该营养清零即立刻死亡
+  respawn-bonus: 30           # 复活后为清空项补充的数值
+  messages:
+    grain: "§c%player% 因碳水耗尽，倒在了饥饿边缘"
+    protein: "§c%player% 因蛋白质耗尽，浑身脱力倒下"
+    respawn-grain: "§7你因碳水耗尽倒下……苏醒后感到一阵饥饿（碳水 +30）"
+    respawn-protein: "§7你因蛋白质耗尽倒下……缓缓恢复了些许体力（蛋白质 +30）"
+
+# Tab 显示（支持 & 颜色代码；占位符 {player} {grain} {vitamin} {protein} {fat}）
+tab:
+  mode: footer                # footer / header / both / off
+  decimals: 0                 # 显示小数位
+  header: ""
+  footer: "§6碳水：§f{grain}% §2维生素：§f{vitamin}% §9蛋白质：§f{protein}% §e脂肪：§f{fat}%"
+
+# 进食提示
+feedback:
+  actionbar-enabled: true
+  actionbar: "&6+碳水{grain} &a+维生素{vitamin} &b+蛋白质{protein} &e+脂肪{fat}"
+
+# ---------------- 合成料理 ----------------
+# 料理不单独配置营养值，直接从配方原料计算：
+#   最终营养 = 原料营养之和 × (1 + bonus-step × (n-1)) / m
+#   n = 原料数量（工具不计入），m = 产物数量
+crafting:
+  bonus-step: 0.05
+  food-accumulate: false      # 同时把饱食度/饱和度累加写到产物食物组件上（非食物产物需CONSUMABLE组件才能食用，默认关）
+  tool-materials: [BOWL, GLASS_BOTTLE, SHEARS]   # 原版工具材料：不计入n、不提供营养
+  tool-items: []              # CE 工具模式，如 "senro_kitchen:knife*"（支持结尾*通配）
+
+# ---------------- CraftEngine 物品识别 ----------------
+ce:
+  # CE 物品ID识别来源：auto / item_model / custom_model_data / off
+  detection: auto
+  # CE 食物饱食度兜底表（读不到食物组件时使用；支持结尾*通配）
+  hunger-overrides:
+    "customcrops:corn*": 4
+    "customcrops:tomato*": 2
+    "customcrops:cabbage*": 2
+    "customcrops:chinese_cabbage*": 2
+    "customcrops:lentils*": 2
+    "customcrops:eggplant*": 3
+    "customcrops:pineapple*": 4
+    "customcrops:grape*": 2
+    "customcrops:pitaya*": 3
+    "customcrops:blueberry*": 2
+
+# ---------------- 食物营养分类 ----------------
+# 标准范式：分类名(碳水:x;蛋白质:x;维生素:x;脂肪:x;) —— 系数为"每 1 点饱食度"提供的营养值
+# items:      参与进食判定的物品：原版材质名 或 CE 物品模式（customcrops:corn*，支持结尾*）
+# guide-items: 图鉴展示条目：原版材质名 或 "ce:<完整模型路径>"，可用 "|" 追加显示名
+categories:
+  staple:
+    display-name: "碳水主食"
+    icon: BREAD
+    coefficients: { grain: 1.3, protein: 0.15, vitamin: 0.05, fat: 0.15 }
+    items: [BREAD, COOKIE, PUMPKIN_PIE, "customcrops:corn*"]
+    guide-items: ["BREAD|面包", "COOKIE|曲奇", "PUMPKIN_PIE|南瓜派", "ce:customcrops:item/customcrops/crop/corn/corn|玉米"]
+  raw_meat:
+    display-name: "生肉"
+    icon: BEEF
+    coefficients: { grain: 0, protein: 0.5, vitamin: 0, fat: 0.3 }
+    items: [BEEF, PORKCHOP, MUTTON, CHICKEN, RABBIT, COD, SALMON, TROPICAL_FISH, PUFFERFISH]
+    guide-items: ["BEEF|生牛肉", "PORKCHOP|生猪排", "MUTTON|生羊肉", "CHICKEN|生鸡肉", "RABBIT|生兔肉", "COD|鳕鱼", "SALMON|鲑鱼", "TROPICAL_FISH|热带鱼", "PUFFERFISH|河豚"]
+  cooked_meat:
+    display-name: "熟肉"
+    icon: COOKED_BEEF
+    coefficients: { grain: 0, protein: 0.7, vitamin: 0.01, fat: 0.45 }
+    items: [COOKED_BEEF, COOKED_PORKCHOP, COOKED_MUTTON, COOKED_CHICKEN, COOKED_RABBIT, COOKED_COD, COOKED_SALMON]
+    guide-items: ["COOKED_BEEF|熟牛肉", "COOKED_PORKCHOP|熟猪排", "COOKED_MUTTON|熟羊肉", "COOKED_CHICKEN|熟鸡肉", "COOKED_RABBIT|熟兔肉", "COOKED_COD|熟鳕鱼", "COOKED_SALMON|熟鲑鱼"]
+  vegetable:
+    display-name: "蔬菜"
+    icon: CARROT
+    coefficients: { grain: 0.15, protein: 0, vitamin: 0.8, fat: 0.01 }
+    items: [CARROT, POTATO, BAKED_POTATO, BEETROOT, DRIED_KELP, "customcrops:tomato*", "customcrops:cabbage*", "customcrops:chinese_cabbage*", "customcrops:lentils*", "customcrops:eggplant*"]
+    guide-items: ["CARROT|胡萝卜", "POTATO|土豆", "BAKED_POTATO|烤土豆", "BEETROOT|甜菜根", "DRIED_KELP|干海带", "ce:customcrops:item/customcrops/crop/tomato/tomato|番茄", "ce:customcrops:item/customcrops/crop/cabbage/cabbage|卷心菜", "ce:customcrops:item/customcrops/crop/chinese_cabbage/chinese_cabbage|白菜", "ce:customcrops:item/customcrops/crop/lentils/lentils|扁豆", "ce:customcrops:item/customcrops/crop/eggplant/eggplant|茄子"]
+  fruit:
+    display-name: "水果"
+    icon: APPLE
+    coefficients: { grain: 0, protein: 0, vitamin: 1.15, fat: 0 }
+    items: [APPLE, MELON_SLICE, SWEET_BERRIES, GLOW_BERRIES, GOLDEN_CARROT, GOLDEN_APPLE, "customcrops:pineapple*", "customcrops:grape*", "customcrops:pitaya*", "customcrops:blueberry*"]
+    guide-items: ["APPLE|苹果", "MELON_SLICE|西瓜片", "SWEET_BERRIES|甜浆果", "GLOW_BERRIES|发光浆果", "GOLDEN_CARROT|金胡萝卜", "GOLDEN_APPLE|金苹果", "ce:customcrops:item/customcrops/crop/pineapple/pineapple|菠萝", "ce:customcrops:item/customcrops/crop/grape/grape|葡萄", "ce:customcrops:item/customcrops/crop/pitaya/pitaya|火龙果", "ce:customcrops:item/customcrops/crop/blueberry/blueberry|蓝莓"]
+  milk:
+    display-name: "牛奶"
+    icon: MILK_BUCKET
+    coefficients: { grain: 0, protein: 1, vitamin: 0, fat: 0.2 }
+    items: [MILK_BUCKET]
+    guide-items: ["MILK_BUCKET|牛奶"]
+
+# ---------------- 手动配方表（CE 料理等无法被原版合成事件拦截的菜品） ----------------
+# id → 原料列表；n=计营养原料数量，m=output-amount
+# 最终营养 = 原料营养之和 × (1 + bonus-step × (n-1)) / m
+manual-recipes: {}
+#  "senro_kitchen:sandwich":
+#    output-amount: 1
+#    ingredients: ["BREAD|面包", "BEEF|牛排", "customcrops:tomato"]
+
+# ---------------- 消息 ----------------
+messages:
+  prefix: "§b[营养]§r "
+  no-permission: "§c你没有权限执行该操作。"
+  player-not-found: "§c玩家不存在或从未进服。"
+  unknown-nutrient: "§c未知的营养值：§f%input%§c（可选 grain/vitamin/protein/fat/all）"
+  unknown-category: "§c未知的营养分类：§f%input%"
+  invalid-number: "§c无效的数值：§f%input%"
+  set: "§a已将 §f%player% §a的 %nutrient% 设为 §f%value%"
+  add: "§a已为 §f%player% §a的 %nutrient% 增加 §f%value%"
+  remove: "§a已从 §f%player% §a的 %nutrient% 减少 §f%value%"
+  guide-unlocked: "§a已为 §f%player% §a解锁图鉴分类：§f%category%"
+  guide-unlocked-all: "§a已为 §f%player% §a解锁全部图鉴分类"
+  query: "§f%player% §7的营养状况："
+  reload: "§a配置已重载。"
