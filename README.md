@@ -15,7 +15,7 @@ mvn package        # 需要 JDK 21 + Maven，产物 target/EpochNutrition-26.1.3
 
 仓库内已附带一份用 JDK21 javac 直接编译打包好的 `target/EpochNutrition-26.1.3.jar`（未跑 Maven，功能一致）。
 
-## 与规格（营养.txt）的逐条对应
+## 与规格的逐条对应
 
 | 规格条目 | 实现 |
 | --- | --- |
